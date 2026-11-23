@@ -41,6 +41,9 @@ class WifiDirectManager(private val context: Context) {
     /** Invoked once the group is formed and the direct link is usable. */
     var onGroupFormed: ((WifiP2pInfo) -> Unit)? = null
 
+    /** Invoked when the group dissolves -- the far side hung up or the link dropped. */
+    var onGroupLost: (() -> Unit)? = null
+
     /** Guards against double register/unregister of the broadcast receiver. */
     private var receiverRegistered = false
 
@@ -152,7 +155,7 @@ class WifiDirectManager(private val context: Context) {
                     isGroupOwner = info.isGroupOwner,
                     hostAddress = info.groupOwnerAddress?.hostAddress,
                 )
-                if (info.groupFormed) onGroupFormed?.invoke(info)
+                if (info.groupFormed) onGroupFormed?.invoke(info) else onGroupLost?.invoke()
             }
         }
     }

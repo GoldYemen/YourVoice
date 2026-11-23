@@ -12,8 +12,8 @@ android {
         applicationId = "com.sotak.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         // Ship only the two ABIs that cover effectively every modern phone.
         ndk {

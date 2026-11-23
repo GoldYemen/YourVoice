@@ -6,7 +6,15 @@ sealed interface CallState {
     /** Nothing is happening yet: the user is on the home screen. */
     data object Idle : CallState
 
-    /** Wi-Fi Direct handshake in progress. */
+    /**
+     * A call is ringing.
+     *
+     * @param isCaller true when *we* dialled and are waiting for an answer,
+     *                 false when the phone is ringing because of an incoming call.
+     */
+    data class Ringing(val peerName: String, val isCaller: Boolean) : CallState
+
+    /** Handshake in progress (group forming, or waiting for audio to come up). */
     data class Connecting(val peerName: String) : CallState
 
     /** Link is up and voice is flowing. */

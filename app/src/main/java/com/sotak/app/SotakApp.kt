@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,18 +38,20 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sotak.app.call.CallState
+import com.sotak.app.service.SotakService
 import com.sotak.app.ui.components.SotakBackgroundBox
 import com.sotak.app.ui.screens.CallScreen
 import com.sotak.app.ui.screens.ConnectingScreen
 import com.sotak.app.ui.screens.HomeScreen
+import com.sotak.app.ui.screens.IncomingCallScreen
 import com.sotak.app.ui.theme.SotakAccent
 import com.sotak.app.ui.theme.SotakTextMuted
 import com.sotak.app.ui.theme.SotakTextPrimary
 
 /**
- * Root composable. Routes between the home screen and the live call UI, and
- * keeps runtime permissions and the Wi-Fi Direct receiver in sync with the
- * activity lifecycle.
+ * Root composable. Routes between home, the incoming-call screen and the live
+ * call UI, and keeps runtime permissions and the Wi-Fi Direct receiver in sync
+ * with the activity lifecycle.
  */
 @Composable
 fun SotakApp(viewModel: MainViewModel = viewModel()) {
@@ -59,7 +62,15 @@ fun SotakApp(viewModel: MainViewModel = viewModel()) {
         ActivityResultContracts.RequestMultiplePermissions(),
     ) {
         permissionsGranted = hasCallPermissions(context)
-        if (permissionsGranted) viewModel.startScanning()
+        if (permissionsGranted) {
+            viewModel.startScanning()
+            startListeningService(context)
+        }
+    }
+
+    // Keep the app reachable for incoming calls as soon as we are allowed to.
+    LaunchedEffect(permissionsGranted) {
+        if (permissionsGranted) startListeningService(context)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -67,7 +78,6 @@ fun SotakApp(viewModel: MainViewModel = viewModel()) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> viewModel.onStart()
-                Lifecycle.Event.ON_STOP -> viewModel.onStop()
                 else -> Unit
             }
         }
@@ -89,6 +99,20 @@ fun SotakApp(viewModel: MainViewModel = viewModel()) {
                 onScan = viewModel::startScanning,
                 onCall = viewModel::call,
             )
+
+            is CallState.Ringing -> if (state.isCaller) {
+                ConnectingScreen(
+                    peerName = state.peerName,
+                    subtitle = "يرن… في انتظار الرد",
+                    onCancel = viewModel::endCall,
+                )
+            } else {
+                IncomingCallScreen(
+                    peerName = state.peerName,
+                    onAccept = viewModel::acceptCall,
+                    onDecline = viewModel::declineCall,
+                )
+            }
 
             is CallState.Connecting -> ConnectingScreen(
                 peerName = state.peerName,
@@ -152,6 +176,10 @@ private fun EndedScreen(message: String, onDismiss: () -> Unit) {
     }
 }
 
+private fun startListeningService(context: Context) {
+    runCatching { SotakService.start(context) }
+}
+
 private fun requiredPermissions(): Array<String> {
     val permissions = mutableListOf(
         Manifest.permission.RECORD_AUDIO,
@@ -159,6 +187,7 @@ private fun requiredPermissions(): Array<String> {
     )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+        permissions.add(Manifest.permission.POST_NOTIFICATIONS)
     }
     return permissions.toTypedArray()
 }

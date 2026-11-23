@@ -187,7 +187,12 @@ private fun formatDuration(totalSeconds: Long): String {
 }
 
 @Composable
-fun ConnectingScreen(peerName: String, onCancel: () -> Unit, modifier: Modifier = Modifier) {
+fun ConnectingScreen(
+    peerName: String,
+    subtitle: String = "يتم إنشاء اتصال Wi-Fi Direct مباشر…",
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -204,7 +209,7 @@ fun ConnectingScreen(peerName: String, onCancel: () -> Unit, modifier: Modifier 
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "يتم إنشاء اتصال Wi-Fi Direct مباشر…",
+            text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = SotakTextMuted,
         )
