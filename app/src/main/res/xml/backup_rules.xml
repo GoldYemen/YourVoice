@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Nothing sensitive is persisted: a call is purely live. -->
+</full-backup-content>

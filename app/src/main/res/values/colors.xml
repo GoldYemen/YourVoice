@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sotak_background">#FF060A14</color>
+    <color name="sotak_surface">#FF101728</color>
+    <color name="sotak_primary">#FF37E6C8</color>
+    <color name="ic_launcher_background">#FF060A14</color>
+</resources>
