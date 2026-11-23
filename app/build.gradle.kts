@@ -22,6 +22,10 @@ android {
 
         externalNativeBuild {
             cmake {
+                // -O3 for BOTH C and C++ sources. Opus is written in plain C,
+                // and without optimization its real-time encoder/decoder is far
+                // too slow, which causes audible stutter on real calls.
+                cFlags += listOf("-O3")
                 cppFlags += listOf("-O3", "-ffast-math", "-fvisibility=hidden")
                 arguments += listOf("-DANDROID_STL=c++_static")
             }

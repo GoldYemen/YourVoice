@@ -132,8 +132,10 @@ class WifiDirectManager(private val context: Context) {
     private fun requestPeers() {
         val c = channel ?: return
         runCatching {
-            manager?.requestPeers(c) { list ->
-                val peers = list.map { device ->
+            manager?.requestPeers(c) { deviceList ->
+                // The callback hands us a WifiP2pDeviceList wrapper; the actual
+                // devices live in its `deviceList` collection.
+                val peers = deviceList.deviceList.map { device ->
                     PeerDevice(
                         name = device.deviceName ?: "",
                         address = device.deviceAddress ?: "",
